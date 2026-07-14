@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>HPB Case Log</title>
+<style>
+  :root{--ink:#1B2026;--ink-soft:#4B5158;--paper:#E7E9E5;--surface:#FFFFFF;--line:#D2D4CD;--accent:#2F7A8C;--accent-dark:#1F5868;--accent-tint:#E2EEF0;--flag:#C97A2E;--flag-tint:#F6E6D2;--danger:#B23A48;--danger-tint:#F3DDE0;--mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;--sans:-apple-system,"Inter","Segoe UI",system-ui,sans-serif;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;font-size:15px;}
+  :focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px;}
+  .masthead{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--paper);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .masthead .title{display:flex;align-items:baseline;gap:8px;}
+  .masthead .title b{font-family:var(--mono);letter-spacing:0.5px;font-size:15px;}
+  .masthead .title span{font-size:11px;color:#9AA1A8;}
+  .seal{font-family:var(--mono);background:var(--accent);color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;border:2px solid #fff2;}
+  .head-actions{display:flex;gap:6px;}
+  .icon-btn{background:transparent;border:1px solid #ffffff33;color:var(--paper);border-radius:7px;padding:7px 9px;font-size:12px;line-height:1;}
+  .icon-btn:active{background:#ffffff22;}
+  .sync-status{cursor:pointer;}
+  .sync-status.synced{color:#9fe0c8;border-color:#9fe0c855;}
+  .sync-status.syncing{color:#f0cf94;border-color:#f0cf9455;}
+  .sync-status.error{color:#f0a3ac;border-color:#f0a3ac55;}
+  .lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--paper);}
+  .lock-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px 26px;max-width:380px;text-align:center;box-shadow:0 8px 24px #0000000f;}
+  .lock-seal{width:54px;height:54px;font-size:15px;margin:0 auto 16px;}
+  .lock-card h1{font-family:var(--mono);font-size:18px;margin:0 0 12px;}
+  .lock-card p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:0 0 20px;}
+  .lock-btn{width:100%;padding:12px;font-size:14.5px;}
+  .lock-foot{margin-top:12px;font-size:12px;color:var(--danger);min-height:16px;}
+  .save-banner{background:var(--flag-tint);color:#6B3F12;font-size:12.5px;padding:7px 14px;text-align:center;border-bottom:1px solid #e0c293;}
+  .save-banner b{cursor:pointer;text-decoration:underline;}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 10px 0;background:var(--paper);}
+  .tab{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:9px 13px 11px;background:#DDE0DA;border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;color:var(--ink-soft);font-size:13px;white-space:nowrap;}
+  .tab .glyph{font-family:var(--mono);font-size:10.5px;font-weight:700;background:var(--ink-soft);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
+  .tab .count{font-family:var(--mono);font-size:11px;color:var(--ink-soft);}
+  .tab.active{background:var(--surface);color:var(--ink);border-color:var(--line);position:relative;top:1px;font-weight:600;}
+  .tab.active .glyph{background:var(--accent);}
+  .alert-dot{background:var(--danger);color:#fff;border-radius:20px;min-width:16px;height:16px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:1px;}
+  .alert-banner{background:var(--danger-tint);border:1px solid #dba8ad;color:var(--danger);border-radius:9px;padding:9px 11px;font-size:12.5px;margin-bottom:12px;line-height:1.5;}
+  .badge{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:20px;margin-top:6px;font-weight:700;}
+  .badge-danger{background:var(--danger-tint);color:var(--danger);}
+  .badge-flag{background:var(--flag-tint);color:#6B3F12;}
+  .badge-done{background:var(--accent-tint);color:var(--accent-dark);}
+  .badge-clickable{cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+  .badge-green{background:#DCEFE0;color:#2A6E3F;}
+  .badge-yellow{background:#FBEFC6;color:#7A5A0A;}
+  .badge-red{background:#F8DADD;color:#A03442;}
+  .badge-grey{background:#E2E3DF;color:#5A5F58;}
+  .badge-imaging{background:#FBEFC6;color:#7A5A0A;border:1px solid #e0c060;}
+  .badge-imaging-off{background:#F0F0EE;color:#9AA1A8;border:1px solid var(--line);}
+  .viewer-overlay{align-items:center;}
+  .viewer-sheet{background:var(--surface);width:100%;max-width:680px;max-height:88vh;overflow-y:auto;border-radius:14px;padding:14px;}
+  .viewer-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-soft);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+  .viewer-head .icon-btn{background:var(--ink);color:#fff;}
+  .viewer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .viewer-item{border-radius:9px;overflow:hidden;background:#00000010;}
+  .viewer-item img,.viewer-item video{width:100%;height:160px;object-fit:cover;display:block;}
+  .page{background:var(--surface);border-top:1px solid var(--line);min-height:60vh;padding:16px 14px 90px;}
+  .module-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .module-head h2{font-size:17px;margin:0;font-family:var(--mono);letter-spacing:0.2px;}
+  .add-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13.5px;font-weight:600;}
+  .add-btn:active{background:var(--accent-dark);}
+  .search-bar{display:flex;gap:8px;margin-bottom:10px;}
+  .search-bar input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:#FBFBFA;color:var(--ink);font-size:14px;}
+  .filter-toggle{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--ink-soft);font-weight:600;}
+  .filter-toggle.open{background:var(--accent-tint);color:var(--accent-dark);border-color:var(--accent);}
+  .filter-panel{border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:10px;background:#FBFBFA;}
+  .filter-panel .btn-secondary{width:100%;margin-top:4px;}
+  .filter-result-note{font-size:12px;color:var(--ink-soft);margin-bottom:10px;font-family:var(--mono);}
+  .month-selector{display:flex;align-items:center;justify-content:space-between;background:var(--accent-tint);border:1px solid var(--accent);border-radius:9px;padding:8px 12px;margin-bottom:10px;gap:10px;}
+  .month-label{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent-dark);}
+  .month-drop{background:transparent;border:none;color:var(--accent-dark);font-size:13px;font-weight:600;cursor:pointer;flex:1;text-align:right;}
+  .billing-totals{background:var(--ink);color:var(--paper);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;}
+  .billing-total-main{display:flex;flex-direction:column;}
+  .billing-total-amount{font-family:var(--mono);font-size:22px;font-weight:700;color:#9fe0c8;line-height:1;}
+  .billing-total-label{font-size:10px;color:#9AA1A8;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;}
+  .billing-total-stats{display:flex;gap:14px;}
+  .billing-stat{display:flex;flex-direction:column;align-items:center;}
+  .billing-stat-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--paper);}
+  .billing-stat-warn{color:#f0cf94;}
+  .billing-stat-lbl{font-size:9px;color:#9AA1A8;text-transform:uppercase;letter-spacing:0.3px;text-align:center;}
+  .archive-section{margin-top:18px;}
+  .archive-header{display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 13px;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;user-select:none;}
+  .archive-header:active{background:var(--line);}
+  .archive-body{margin-top:8px;opacity:0.85;}
+  .histo-counter{display:flex;gap:12px;align-items:flex-start;background:var(--danger-tint);border:1px solid #dba8ad;border-radius:10px;padding:11px 12px;margin-bottom:12px;}
+  .case-log-summary{background:var(--ink);color:var(--paper);border-radius:10px;padding:11px 14px;margin-bottom:12px;}
+  .case-log-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#9AA1A8;margin-bottom:10px;}
+  .case-log-stats{display:flex;align-items:center;justify-content:space-around;gap:4px;}
+  .case-log-stat{display:flex;flex-direction:column;align-items:center;flex:1;}
+  .case-log-num{font-family:var(--mono);font-size:24px;font-weight:700;color:#fff;line-height:1;}
+  .case-log-lbl{font-size:9px;color:#9AA1A8;text-transform:uppercase;letter-spacing:0.4px;margin-top:3px;text-align:center;}
+  .case-log-divider{width:1px;height:32px;background:#ffffff22;flex-shrink:0;}
+  .histo-counter-icon{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--danger);color:#fff;border-radius:9px;min-width:56px;padding:8px 6px;text-align:center;flex-shrink:0;}
+  .histo-counter-num{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;}
+  .histo-counter-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;line-height:1.3;}
+  .histo-counter-cases{flex:1;display:flex;flex-direction:column;gap:5px;}
+  .histo-counter-case{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .histo-case-id{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--danger);}
+  .histo-case-proc{font-size:12.5px;color:var(--ink);flex:1;}
+  .histo-case-days{font-family:var(--mono);font-size:11px;color:var(--danger);white-space:nowrap;}
+  .entry-card{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;background:var(--surface);}
+  .entry-card.card-red{background:var(--danger-tint);border-color:#dba8ad;}
+  .entry-card.card-yellow{background:var(--flag-tint);border-color:#e0c293;}
+  .entry-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;}
+  .entry-id{font-family:var(--mono);font-size:13px;color:var(--ink);}
+  .entry-id .hid{font-weight:700;}
+  .entry-date{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);}
+  .entry-main{font-size:14px;margin-top:4px;color:var(--ink);}
+  .entry-sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .entry-actions{display:flex;gap:8px;margin-top:8px;}
+  .entry-actions button{font-size:12px;background:none;border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--ink-soft);}
+  .entry-actions button.del{color:var(--danger);border-color:#e3b9be;}
+  .empty-state{text-align:center;padding:40px 14px;color:var(--ink-soft);font-size:13.5px;}
+  .empty-state .big{font-size:28px;display:block;margin-bottom:6px;}
+  .sheet-overlay{position:fixed;inset:0;background:#1B2026aa;z-index:50;display:flex;align-items:flex-end;justify-content:center;}
+  .sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:14px 14px 0 0;padding:16px 16px 24px;}
+  .sheet h3{font-family:var(--mono);font-size:15px;margin:0 0 12px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;font-weight:600;}
+  .field input,.field select,.field textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:#FBFBFA;color:var(--ink);}
+  .field textarea{resize:vertical;min-height:54px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .checkbox-field input{width:auto;accent-color:var(--accent);}
+  .checkbox-label{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);font-weight:500;}
+  .checkbox-label input{width:18px;height:18px;}
+  .media-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .media-thumb{position:relative;width:74px;height:74px;border-radius:8px;overflow:hidden;background:#00000010;border:1px solid var(--line);}
+  .media-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .media-remove{position:absolute;top:2px;right:2px;background:#1B2026cc;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;padding:0;}
+  .files-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+  .file-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:12.5px;background:#FBFBFA;}
+  .file-row a{color:var(--accent-dark);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .file-row .file-size{color:var(--ink-soft);font-family:var(--mono);font-size:11px;}
+  .file-remove{position:static;flex-shrink:0;}
+  .scan-row{display:flex;gap:8px;align-items:center;margin:6px 0 14px;}
+  .scan-btn{background:var(--flag-tint);color:#6B3F12;border:1px solid #e0c293;border-radius:7px;padding:8px 11px;font-size:12.5px;font-weight:600;}
+  .scan-status{font-size:11.5px;color:var(--ink-soft);}
+  .ocr-box{background:var(--flag-tint);border:1px solid #e0c293;border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;}
+  .ocr-box .lbl{font-weight:700;color:#6B3F12;margin-bottom:4px;display:block;}
+  .ocr-box textarea{width:100%;background:#fff;border:1px solid #e0c293;border-radius:6px;padding:6px;font-family:var(--mono);font-size:11px;min-height:60px;}
+  .ocr-apply{margin-top:6px;background:#6B3F12;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:12px;}
+  .sheet-actions{display:flex;gap:10px;margin-top:6px;position:sticky;bottom:0;background:var(--surface);padding-top:6px;}
+  .btn-primary{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;}
+  .btn-secondary{flex:0 0 auto;background:none;border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;padding:11px 16px;font-size:14px;}
+  .footer-actions{position:fixed;bottom:0;left:0;right:0;background:var(--ink);display:flex;z-index:30;border-top:1px solid #000;}
+  .footer-actions button{flex:1;background:none;border:none;color:var(--paper);padding:11px 4px;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .footer-actions button span.ico{font-size:16px;}
+  .footer-actions button:active{background:#ffffff15;}
+  input[type=file]{display:none;}
+  @media(min-width:640px){.page{padding:20px 24px 90px;}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const MODULES = [
+  { key:'operations', label:'Operations', glyph:'OP',
+    fields:[
+      {name:'procedure',label:'Procedure',type:'text',required:true},
+      {name:'procedureType',label:'Procedure type',type:'select',options:['Surgical','Endoscopy','Both']},
+      {name:'role',label:'Role',type:'select',options:['Primary','Assistant','Supervised trainee','Observed']},
+      {name:'approach',label:'Approach',type:'select',options:['Open','Laparoscopic','Robotic','Hybrid']},
+      {name:'urgency',label:'Elective / Emergency',type:'select',options:['Elective','Emergency']},
+      {name:'afterHours',label:'After hours',type:'checkbox'},
+      {name:'complexity',label:'Complexity',type:'select',options:['Minor','Major','Complex / HPB-specific']},
+      {name:'complications',label:'Complications',type:'text'},
+      {name:'privateCase',label:'Private case?',type:'select',options:['No','Yes']},
+      {name:'histopathology',label:'Histopathology',type:'textarea'},
+      {name:'histopathologyChecked',label:'Histopathology checked',type:'checkbox'},
+      {name:'clinicFollowUp',label:'Clinic follow-up / post-op issues',type:'textarea'},
+      {name:'caseReflection',label:'Case reflection (issues, learning points)',type:'textarea'}
+    ],
+    mainField:'procedure', subFields:['procedureType','role','approach','urgency'],
+    alertFn:(e)=>histoStatus(e).state==='overdue'
+  },
+  { key:'cancer', label:'Cancer referrals', glyph:'CA',
+    fields:[
+      {name:'cancerType',label:'Cancer type',type:'select',options:['HCC','Cholangiocarcinoma','Pancreatic','Colorectal liver mets','Gallbladder','Other'],onchangeToggle:'cancerTypeOther'},
+      {name:'cancerTypeOther',label:'Specify cancer type',type:'text',showIf:{field:'cancerType',equals:'Other'}},
+      {name:'referralSource',label:'Referral source',type:'text'},
+      {name:'mdtDate',label:'MDT date',type:'date'},
+      {name:'mdtDiscussed',label:'MDT',type:'checkbox'},
+      {name:'pathwayStatus',label:'Pathway status',type:'select',options:['Work-Up','Neoadjuvant','Surgery Complete','Not for Resection']},
+      {name:'awaitingImaging',label:'Awaiting imaging',type:'checkbox'},
+      {name:'plan',label:'Plan / outcome',type:'text'},
+      {name:'archived',label:'Archive case',type:'checkbox'}
+    ],
+    mainField:'cancerType', subFields:['referralSource','plan']
+  },
+  { key:'inpatient', label:'Inpatient / ED', glyph:'IP',
+    fields:[
+      {name:'referringTeam',label:'Referring team / ED',type:'text'},
+      {name:'reason',label:'Reason for referral',type:'text'},
+      {name:'diagnosis',label:'Working diagnosis',type:'text'},
+      {name:'urgency',label:'Urgency',type:'select',options:['Emergency','Urgent','Routine']},
+      {name:'outcome',label:'Outcome',type:'select',options:['Admitted','Operated','Discharged','Follow-up arranged']},
+      {name:'archived',label:'Archive case',type:'checkbox'}
+    ],
+    mainField:'reason', subFields:['referringTeam','outcome']
+  },
+  { key:'external', label:'External referrals', glyph:'EX',
+    fields:[
+      {name:'referringHospital',label:'Referring hospital',type:'text'},
+      {name:'reason',label:'Reason for referral',type:'text'},
+      {name:'decision',label:'Decision',type:'select',options:['Accepted','Declined','Pending']},
+      {name:'transferDetails',label:'Transfer details',type:'text'},
+      {name:'archived',label:'Archive case',type:'checkbox'}
+    ],
+    mainField:'referringHospital', subFields:['reason','decision']
+  },
+  { key:'overtime', label:'Overtime', glyph:'OT',
+    fields:[
+      {name:'linkedOp',label:'Linked operation (optional)',type:'linkedOp'},
+      {name:'hours',label:'Hours',type:'number'},
+      {name:'category',label:'Category',type:'select',options:['On-call','Emergency case','Ward cover','Admin / MDT','Other']},
+      {name:'location',label:'Location / site',type:'text'},
+      {name:'reason',label:'Reason',type:'text'},
+      {name:'submitted',label:'Submitted for payment',type:'checkbox'}
+    ],
+    mainField:'category', subFields:['hours','location']
+  },
+  { key:'billing', label:'Private billing', glyph:'PB',
+    fields:[
+      {name:'linkedOp',label:'Linked operation',type:'linkedOp'},
+      {name:'itemNumber',label:'Billing item number',type:'text'},
+      {name:'fund',label:'Insurer / fund',type:'text'},
+      {name:'submitted',label:'Submitted',type:'checkbox'},
+      {name:'paid',label:'Paid',type:'checkbox'},
+      {name:'fundsReceipated',label:'Funds receipted ($)',type:'number'}
+    ],
+    mainField:'itemNumber', subFields:['fund']
+  }
+];
+const COMMON_FIELDS = [
+  {name:'date',label:'Date',type:'date',required:true},
+  {name:'consultant',label:'Consultant',type:'select',options:['Adrian Fox','Brett Knowles','Luke Bradshaw','Bart McKay','Simon Banting','Mary Ann Johnson','Enoch Wong','Michael Hii']},
+  {name:'hospitalId',label:'Hospital ID',type:'text',required:true},
+  {name:'age',label:'Age',type:'number'},
+  {name:'initials',label:'Initials',type:'text'}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let DB = {}; MODULES.forEach(m=>DB[m.key]=[]);
+let activeModule = MODULES[0].key;
+let unsaved = false;
+let sheetState = null;
+let opFilters = {text:'',procedureType:'',consultant:'',dateFrom:'',dateTo:''};
+let opFiltersOpen = false;
+let opMonthFilter = today().slice(0,7);
+let archiveSectionOpen = {cancer:false, inpatient:false, external:false}; // YYYY-MM, defaults to current month
+
+/* ============================================================
+   GOOGLE SHEETS BACKEND
+   ============================================================ */
+const GOOGLE_CLIENT_ID = '1025990558523-n49hdqfn61l69i7n25ihl898183dq9ct.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const SPREADSHEET_NAME = 'HPB Case Log';
+const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
+const DRIVE_API  = 'https://www.googleapis.com/drive/v3';
+
+let tokenClient = null;
+let accessToken  = null;
+let spreadsheetId = null;
+let rowMaps = {};      // moduleKey -> { entryId -> sheetRowNumber }
+let sheetHdrs = {};    // moduleKey -> [col names]
+let syncStatus = 'signed-out';
+let lastSynced = null;
+
+/* ---- utilities ---- */
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function moduleOf(k){ return MODULES.find(m=>m.key===k); }
+window.addEventListener('beforeunload',e=>{ if(unsaved){e.preventDefault();e.returnValue='';} });
+
+function migrateData(){
+  let ch=false;
+  (DB.operations||[]).forEach(e=>{ if(e.role==='Supervised training'){e.role='Supervised trainee';ch=true;} });
+  return ch;
+}
+
+/* ---- auth ---- */
+function initGoogle(){
+  if(typeof google==='undefined'||!google.accounts){ setTimeout(initGoogle,300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID, scope:SCOPES, callback:handleTokenResponse
+  });
+}
+initGoogle();
+
+function signIn(){
+  if(!tokenClient){ alert('Google sign-in still loading — try again shortly.'); return; }
+  tokenClient.requestAccessToken();
+}
+function signOut(){
+  if(accessToken && google?.accounts?.oauth2?.revoke) google.accounts.oauth2.revoke(accessToken,()=>{});
+  accessToken=null; spreadsheetId=null; rowMaps={}; sheetHdrs={};
+  syncStatus='signed-out'; render();
+}
+function syncStatusLabel(){
+  if(syncStatus==='syncing') return '⏳ Syncing…';
+  if(syncStatus==='error')   return '⚠ Sync error — tap to retry';
+  if(lastSynced) return `✓ Synced ${lastSynced.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+  return '✓ Synced';
+}
+
+async function handleTokenResponse(resp){
+  if(resp.error){ syncStatus='error'; render(); alert('Google sign-in failed: '+resp.error); return; }
+  accessToken = resp.access_token;
+  syncStatus='syncing'; render();
+  try{
+    await initSpreadsheet();
+    await loadAllData();
+    backgroundLoadMedia();
+    syncStatus='synced'; lastSynced=new Date();
+  }catch(err){
+    console.error(err); syncStatus='error';
+    alert('Could not connect to Google Sheets:\n'+err.message);
+  }
+  render();
+}
+
+/* ---- API helpers ---- */
+async function apiFetch(url,options={}){
+  options.headers = Object.assign({},options.headers||{},{Authorization:'Bearer '+accessToken});
+  const res = await fetch(url,options);
+  if(res.status===401){
+    accessToken=null; syncStatus='signed-out'; render();
+    throw new Error('Session expired — please sign in again.');
+  }
+  if(!res.ok){ const t=await res.text(); throw new Error(`API ${res.status}: ${t.slice(0,300)}`); }
+  return res;
+}
+async function sheetsGet(range){
+  const res=await apiFetch(`${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(range)}`);
+  return res.json();
+}
+async function sheetsPut(range,values){
+  await apiFetch(`${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({values})});
+}
+async function sheetsAppendRows(sheetName,rows){
+  const res=await apiFetch(
+    `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(sheetName+'!A:A')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});
+  return res.json();
+}
+async function sheetsClear(range){
+  await apiFetch(`${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(range)}:clear`,{method:'POST'});
+}
+
+/* ---- column helpers ---- */
+function colLetter(n){ let r=''; while(n>0){n--;r=String.fromCharCode(65+(n%26))+r;n=Math.floor(n/26);} return r; }
+
+function getHeaders(mk){
+  const mod=moduleOf(mk);
+  const cols=['id',...COMMON_FIELDS.map(f=>f.name),...mod.fields.map(f=>f.name)];
+  if(mk==='operations') cols.push('videoRecorded','hasMedia');
+  return cols;
+}
+function entryToRow(mk,entry){
+  const h=sheetHdrs[mk]||getHeaders(mk);
+  return h.map(col=>{
+    const v=entry[col];
+    if(v==null||Array.isArray(v)) return '';
+    if(typeof v==='boolean') return v?'TRUE':'FALSE';
+    return String(v);
+  });
+}
+function rowToEntry(mk,headers,row){
+  const e={};
+  headers.forEach((h,i)=>{
+    const v=(row[i]!=null)?String(row[i]):'';
+    e[h]=v==='TRUE'?true:v==='FALSE'?false:v;
+  });
+  if(mk==='operations'){e.media=[];e.files=[];}
+  return e;
+}
+
+/* ---- spreadsheet setup ---- */
+async function initSpreadsheet(){
+  // Find existing spreadsheet
+  const q=encodeURIComponent(`name='${SPREADSHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+  const lr=await apiFetch(`${DRIVE_API}/files?q=${q}&fields=files(id,name)`);
+  const ld=await lr.json();
+  if(ld.files&&ld.files.length){
+    spreadsheetId=ld.files[0].id;
+  } else {
+    // Create with all module sheets
+    const cr=await apiFetch(SHEETS_API,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        properties:{title:SPREADSHEET_NAME},
+        sheets:MODULES.map(m=>({properties:{title:m.label}}))
+      })
+    });
+    const cd=await cr.json();
+    spreadsheetId=cd.spreadsheetId;
+  }
+
+  // Ensure all sheets exist (in case spreadsheet was created with fewer)
+  const sr=await apiFetch(`${SHEETS_API}/${spreadsheetId}?fields=sheets.properties`);
+  const sd=await sr.json();
+  const existing=(sd.sheets||[]).map(s=>s.properties.title);
+  const missing=MODULES.filter(m=>!existing.includes(m.label));
+  if(missing.length){
+    await apiFetch(`${SHEETS_API}/${spreadsheetId}:batchUpdate`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({requests:missing.map(m=>({addSheet:{properties:{title:m.label}}}))})
+    });
+  }
+
+  // Read/write headers for each sheet
+  for(const m of MODULES){
+    const headers=getHeaders(m.key);
+    const endCol=colLetter(headers.length);
+    const rangeStr=`${m.label}!A1:${endCol}1`;
+    const hr=await sheetsGet(rangeStr);
+    if(!hr.values||!hr.values[0]||hr.values[0].length===0){
+      await sheetsPut(rangeStr,[headers]);
+      sheetHdrs[m.key]=headers;
+    } else {
+      sheetHdrs[m.key]=hr.values[0];
+    }
+  }
+}
+
+async function loadAllData(){
+  MODULES.forEach(m=>{rowMaps[m.key]={};});
+  for(const m of MODULES){
+    const headers=sheetHdrs[m.key];
+    const endCol=colLetter(headers.length+10);
+    const data=await sheetsGet(`${m.label}!A:${endCol}`);
+    const rows=data.values||[];
+    const entries=[];
+    rows.slice(1).forEach((row,idx)=>{
+      const id=row[0];
+      if(!id||id==='DELETED') return;
+      const entry=rowToEntry(m.key,headers,row);
+      entries.push(entry);
+      rowMaps[m.key][id]=idx+2; // +2: row 1 = headers, idx is 0-based
+    });
+    DB[m.key]=entries;
+  }
+  migrateData();
+}
+
+/* ---- per-row sync operations ---- */
+async function appendEntry(mk,entry){
+  const mod=moduleOf(mk);
+  const res=await sheetsAppendRows(mod.label,[entryToRow(mk,entry)]);
+  const ur=res.updates?.updatedRange||'';
+  const rm=ur.match(/!A(\d+)/);
+  if(rm) rowMaps[mk][entry.id]=parseInt(rm[1]);
+}
+async function updateEntry(mk,entry){
+  const rowNum=rowMaps[mk][entry.id];
+  if(!rowNum){ await appendEntry(mk,entry); return; }
+  const mod=moduleOf(mk);
+  const endCol=colLetter(sheetHdrs[mk].length);
+  await sheetsPut(`${mod.label}!A${rowNum}:${endCol}${rowNum}`,[entryToRow(mk,entry)]);
+}
+async function markDeleted(mk,entryId){
+  const rowNum=rowMaps[mk][entryId];
+  if(!rowNum) return;
+  const mod=moduleOf(mk);
+  await sheetsPut(`${mod.label}!A${rowNum}:A${rowNum}`,[['DELETED']]);
+  delete rowMaps[mk][entryId];
+}
+
+async function syncEntry(mk,entryId,isEdit){
+  syncStatus='syncing'; render();
+  try{
+    const entry=DB[mk].find(e=>e.id===entryId);
+    if(!entry) return;
+    if(isEdit) await updateEntry(mk,entry);
+    else await appendEntry(mk,entry);
+    syncStatus='synced'; lastSynced=new Date(); unsaved=false;
+  }catch(err){ console.error(err); syncStatus='error'; }
+  render();
+}
+
+/* full re-push (used by Restore) */
+async function pushAllToSheets(){
+  syncStatus='syncing'; render();
+  try{
+    for(const m of MODULES){
+      const mod=moduleOf(m.key);
+      const headers=sheetHdrs[m.key];
+      // Clear all data rows
+      const cd=await sheetsGet(`${mod.label}!A:A`);
+      const totalRows=(cd.values||[]).length;
+      if(totalRows>1) await sheetsClear(`${mod.label}!A2:${colLetter(headers.length)}${Math.max(totalRows+10,500)}`);
+      rowMaps[m.key]={};
+      if(DB[m.key].length>0){
+        const rows=DB[m.key].map(e=>entryToRow(m.key,e));
+        const res=await sheetsAppendRows(mod.label,rows);
+        const ur=res.updates?.updatedRange||'';
+        const sm=ur.match(/!A(\d+)/);
+        if(sm){
+          const start=parseInt(sm[1]);
+          DB[m.key].forEach((e,i)=>{ rowMaps[m.key][e.id]=start+i; });
+        }
+      }
+    }
+    // Save operations media to Drive
+    for(const entry of DB.operations){
+      if(entry.media&&entry.media.length>0){
+        await saveMediaToDrive(entry.id,entry.media,entry.files||[]);
+        entry.hasMedia=true;
+      }
+    }
+    syncStatus='synced'; lastSynced=new Date(); unsaved=false;
+  }catch(err){ console.error(err); syncStatus='error'; }
+  render();
+}
+
+/* ---- media (Drive) ---- */
+function mediaFilename(id){ return `hpb-ops-media-${id}.json`; }
+async function findDriveFile(name){
+  const q=encodeURIComponent(`name='${name}' and trashed=false`);
+  const r=await apiFetch(`${DRIVE_API}/files?q=${q}&fields=files(id)`);
+  const d=await r.json();
+  return(d.files&&d.files.length)?d.files[0].id:null;
+}
+async function saveMediaToDrive(entryId,media,files){
+  if((!media||!media.length)&&(!files||!files.length)) return;
+  const content=JSON.stringify({media:media||[],files:files||[]});
+  const fname=mediaFilename(entryId);
+  let fileId=await findDriveFile(fname);
+  if(!fileId){
+    const cr=await apiFetch(`${DRIVE_API}/files`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:fname,mimeType:'application/json'})});
+    fileId=(await cr.json()).id;
+  }
+  await apiFetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+    {method:'PATCH',headers:{'Content-Type':'application/json'},body:content});
+}
+async function loadMediaFromDrive(entryId){
+  const fileId=await findDriveFile(mediaFilename(entryId));
+  if(!fileId) return null;
+  const r=await apiFetch(`${DRIVE_API}/files/${fileId}?alt=media`);
+  const t=await r.text();
+  try{return JSON.parse(t);}catch(e){return null;}
+}
+async function backgroundLoadMedia(){
+  for(const entry of DB.operations){
+    if(entry.hasMedia){
+      try{
+        const data=await loadMediaFromDrive(entry.id);
+        if(data){entry.media=data.media||[];entry.files=data.files||[];}
+      }catch(e){}
+    }
+  }
+  if(activeModule==='operations') render();
+}
+
+/* ============================================================
+   HISTOPATHOLOGY REMINDERS
+   ============================================================ */
+function addDays(dateStr,n){
+  if(!dateStr) return null;
+  const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return d;
+}
+function histoStatus(e){
+  if(e.histopathologyChecked) return {state:'done'};
+  if(!e.date) return {state:'unknown'};
+  const due=addDays(e.date,7);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((due-now)/(1000*60*60*24));
+  if(diff>0) return {state:'upcoming',days:diff};
+  return {state:'overdue',days:Math.abs(diff)};
+}
+function pendingCount(mod){ return mod.alertFn?DB[mod.key].filter(mod.alertFn).length:0; }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const app=document.getElementById('app');
+
+function render(){
+  if(!accessToken){ renderLockScreen(); return; }
+  const totalCount=MODULES.reduce((s,m)=>s+DB[m.key].length,0);
+  app.innerHTML=`
+    <div class="masthead">
+      <div class="title">
+        <div class="seal">${totalCount}</div>
+        <div><b>HPB CASE LOG</b><br><span>fellowship record · Sheets</span></div>
+      </div>
+      <div class="head-actions">
+        <span class="icon-btn sync-status ${syncStatus}" onclick="pushAllToSheets()">${syncStatusLabel()}</span>
+        <button class="icon-btn" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+    <div class="tabs">${MODULES.map(m=>{
+      const pend=pendingCount(m);
+      return `<div class="tab ${m.key===activeModule?'active':''}" onclick="setModule('${m.key}')">
+        <span class="glyph">${m.glyph}</span>${m.label}<span class="count">${DB[m.key].length}</span>${pend>0?`<span class="alert-dot">${pend}</span>`:''}
+      </div>`;
+    }).join('')}</div>
+    <div class="page">${renderModulePage(moduleOf(activeModule))}</div>
+    <div class="footer-actions">
+      <button onclick="exportBackup()"><span class="ico">⬇</span>Back up</button>
+      <button onclick="triggerRestore()"><span class="ico">⬆</span>Restore</button>
+      <button onclick="exportExcel()"><span class="ico">▦</span>Excel</button>
+    </div>
+    <input type="file" id="restoreInput" accept="application/json" onchange="handleRestore(event)">
+  `;
+  if(sheetState) renderSheet();
+}
+
+function renderLockScreen(){
+  app.innerHTML=`
+    <div class="lock-screen">
+      <div class="lock-card">
+        <div class="seal lock-seal">HPB</div>
+        <h1>HPB Case Log</h1>
+        <p>Sign in with your Google account to access your fellowship logbook. Data is stored directly in Google Sheets in your own Google Drive — nothing is visible here until you authenticate.</p>
+        <button class="add-btn lock-btn" onclick="signIn()">Sign in with Google</button>
+        <div class="lock-foot">${syncStatus==='error'?'⚠ Last sign-in attempt failed — please try again.':''}</div>
+      </div>
+    </div>`;
+}
+
+function setModule(k){ activeModule=k; render(); }
+
+function renderModulePage(mod){
+  let entries=DB[mod.key].slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  let searchUI='', overdueUI='', caseLogUI='';
+  if(mod.key==='operations'){
+    // Case log summary — counts across ALL operations (not just current month)
+    const allOps = DB.operations;
+    const majorCount = allOps.filter(e=>e.complexity==='Major').length;
+    const complexCount = allOps.filter(e=>e.complexity==='Complex / HPB-specific').length;
+    const endoscopyCount = allOps.filter(e=>e.procedureType==='Endoscopy' || e.procedureType==='Both').length;
+    const totalOps = allOps.length;
+    caseLogUI = `
+      <div class="case-log-summary">
+        <div class="case-log-title">Case log totals</div>
+        <div class="case-log-stats">
+          <div class="case-log-stat">
+            <span class="case-log-num">${totalOps}</span>
+            <span class="case-log-lbl">Total cases</span>
+          </div>
+          <div class="case-log-divider"></div>
+          <div class="case-log-stat">
+            <span class="case-log-num">${majorCount}</span>
+            <span class="case-log-lbl">Major</span>
+          </div>
+          <div class="case-log-divider"></div>
+          <div class="case-log-stat">
+            <span class="case-log-num">${complexCount}</span>
+            <span class="case-log-lbl">Complex / HPB</span>
+          </div>
+          <div class="case-log-divider"></div>
+          <div class="case-log-stat">
+            <span class="case-log-num">${endoscopyCount}</span>
+            <span class="case-log-lbl">Endoscopy</span>
+          </div>
+        </div>
+      </div>`;
+    const before=entries.length;
+    // Build list of months that have entries, plus current month always present
+    const allMonths=[...new Set([today().slice(0,7),...DB.operations.map(e=>(e.date||'').slice(0,7)).filter(Boolean)])].sort((a,b)=>b.localeCompare(a));
+    // Apply month filter first
+    entries=entries.filter(e=>(e.date||'').slice(0,7)===opMonthFilter);
+    entries=applyOpFilters(entries);
+    const overdue=DB.operations.filter(e=>histoStatus(e).state==='overdue');
+    const ac=['text','procedureType','consultant','dateFrom','dateTo'].filter(k=>opFilters[k]).length;
+    const monthLabel=(ym)=>{ const [y,m]=ym.split('-'); return new Date(y,m-1,1).toLocaleString('default',{month:'long',year:'numeric'}); };
+    searchUI=`
+      <div class="month-selector">
+        <span class="month-label">📅 ${monthLabel(opMonthFilter)}</span>
+        <select class="month-drop" onchange="setOpMonth(this.value)">
+          ${allMonths.map(m=>`<option value="${m}" ${m===opMonthFilter?'selected':''}>${monthLabel(m)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="opSearchText" placeholder="Search procedure name…" value="${esc(opFilters.text)}" oninput="updateOpFilter('text',this.value)">
+        <button type="button" class="filter-toggle ${opFiltersOpen?'open':''}" onclick="toggleOpFilters()">Filters${ac?` (${ac})`:''}</button>
+      </div>
+      ${opFiltersOpen?`
+        <div class="filter-panel">
+          <div class="field"><label>Procedure type</label>
+            <select onchange="updateOpFilter('procedureType',this.value)">
+              <option value="">— Any —</option>
+              ${['Surgical','Endoscopy','Both'].map(o=>`<option value="${o}" ${opFilters.procedureType===o?'selected':''}>${o}</option>`).join('')}
+            </select></div>
+          <div class="field"><label>Consultant</label>
+            <select onchange="updateOpFilter('consultant',this.value)">
+              <option value="">— Any —</option>
+              ${['Adrian Fox','Brett Knowles','Luke Bradshaw','Bart McKay','Simon Banting','Mary Ann Johnson','Enoch Wong','Michael Hii'].map(o=>`<option value="${o}" ${opFilters.consultant===o?'selected':''}>${o}</option>`).join('')}
+            </select></div>
+          <div class="row2">
+            <div class="field"><label>From</label><input type="date" value="${esc(opFilters.dateFrom)}" onchange="updateOpFilter('dateFrom',this.value)"></div>
+            <div class="field"><label>To</label><input type="date" value="${esc(opFilters.dateTo)}" onchange="updateOpFilter('dateTo',this.value)"></div>
+          </div>
+          ${ac?`<button type="button" class="btn-secondary" onclick="clearOpFilters()">Clear filters</button>`:''}
+        </div>`:''}
+      ${ac?`<div class="filter-result-note">Showing ${entries.length} of ${DB.operations.filter(e=>(e.date||'').slice(0,7)===opMonthFilter).length} cases this month</div>`:''}`;
+    if(overdue.length) overdueUI=`
+      <div class="histo-counter">
+        <div class="histo-counter-icon"><span class="histo-counter-num">${overdue.length}</span><span class="histo-counter-label">Histopath<br>overdue</span></div>
+        <div class="histo-counter-cases">
+          ${overdue.map(e=>{const s=histoStatus(e);return `<div class="histo-counter-case"><span class="histo-case-id">${esc(e.initials||'?')} · ${esc(e.hospitalId||'?')}</span><span class="histo-case-proc">${esc(e.procedure||'—')}</span><span class="histo-case-days">${s.days}d overdue</span></div>`;}).join('')}
+        </div>
+      </div>`;
+  }
+  const entryContent = entries.length===0
+    ? `<div class="empty-state"><span class="big">—</span>${mod.key==='operations'?'No cases logged this month.':'No entries yet. Tap "New entry" to log your first case.'}</div>`
+    : ['cancer','inpatient','external'].includes(mod.key) ? renderArchivableEntries(mod, entries)
+    : entries.map(e=>renderEntryCard(mod,e)).join('');
+  return `
+    <div class="module-head"><h2>${mod.label}</h2><button class="add-btn" onclick="openSheet('${mod.key}')">+ New entry</button></div>
+    ${mod.key==='billing' ? billingTotals() : ''}
+    ${caseLogUI}${overdueUI}${searchUI}
+    ${entryContent}`;
+}
+
+function applyOpFilters(entries){
+  return entries.filter(e=>{
+    if(opFilters.text&&!(e.procedure||'').toLowerCase().includes(opFilters.text.toLowerCase())) return false;
+    if(opFilters.procedureType&&e.procedureType!==opFilters.procedureType) return false;
+    if(opFilters.consultant&&e.consultant!==opFilters.consultant) return false;
+    if(opFilters.dateFrom&&(!e.date||e.date<opFilters.dateFrom)) return false;
+    if(opFilters.dateTo&&(!e.date||e.date>opFilters.dateTo)) return false;
+    return true;
+  });
+}
+function renderArchivableEntries(mod, entries){
+  const active = entries.filter(e=>!e.archived);
+  const archived = entries.filter(e=>e.archived);
+  const archiveKey = mod.key;
+  let html = '';
+  if(active.length===0){
+    html += `<div class="empty-state"><span class="big">—</span>No active entries. ${archived.length?'See archived cases below.':'Tap "New entry" to log your first case.'}</div>`;
+  } else {
+    html += active.map(e=>renderEntryCard(mod,e)).join('');
+  }
+  if(archived.length){
+    const isOpen = archiveSectionOpen[archiveKey];
+    html += `
+      <div class="archive-section">
+        <div class="archive-header" onclick="toggleArchiveSection('${archiveKey}')">
+          <span>📦 Archived (${archived.length})</span>
+          <span>${isOpen?'▲':'▼'}</span>
+        </div>
+        ${isOpen?`<div class="archive-body">${archived.map(e=>renderEntryCard(mod,e)).join('')}</div>`:''}
+      </div>`;
+  }
+  return html;
+}
+
+function toggleArchiveSection(mk){ archiveSectionOpen[mk]=!archiveSectionOpen[mk]; render(); }
+
+function toggleArchive(mk, id){
+  const entry=DB[mk].find(e=>e.id===id);
+  if(!entry) return;
+  entry.archived=!entry.archived;
+  unsaved=true; render();
+  if(accessToken) syncEntry(mk,id,true);
+}
+
+function billingTotals(){
+  const cases=DB.billing;
+  if(!cases.length) return '';
+  const total=cases.reduce((s,e)=>s+(parseFloat(e.fundsReceipated)||0),0);
+  const receipted=cases.filter(e=>parseFloat(e.fundsReceipated)>0).reduce((s,e)=>s+(parseFloat(e.fundsReceipated)||0),0);
+  const pending=cases.filter(e=>e.submitted&&!e.paid).length;
+  const unsubmitted=cases.filter(e=>!e.submitted).length;
+  const fmt=(n)=>`$${n.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  return `<div class="billing-totals">
+    <div class="billing-total-main">
+      <span class="billing-total-amount">${fmt(receipted)}</span>
+      <span class="billing-total-label">Total receipted</span>
+    </div>
+    <div class="billing-total-stats">
+      <div class="billing-stat"><span class="billing-stat-val">${cases.length}</span><span class="billing-stat-lbl">Cases</span></div>
+      <div class="billing-stat"><span class="billing-stat-val">${pending}</span><span class="billing-stat-lbl">Awaiting payment</span></div>
+      <div class="billing-stat"><span class="billing-stat-val billing-stat-warn">${unsubmitted}</span><span class="billing-stat-lbl">Not submitted</span></div>
+    </div>
+  </div>`;
+}
+
+function setOpMonth(ym){ opMonthFilter=ym; render(); }
+function updateOpFilter(k,v){ opFilters[k]=v; render(); const el=document.getElementById('opSearchText'); if(el){el.focus();el.selectionStart=el.selectionEnd=el.value.length;} }
+function toggleOpFilters(){ opFiltersOpen=!opFiltersOpen; render(); }
+function clearOpFilters(){ opFilters={text:'',procedureType:'',consultant:'',dateFrom:'',dateTo:''}; render(); }
+
+function renderEntryCard(mod,e){
+  let main=e[mod.mainField]||'—';
+  if(mod.key==='cancer'&&e.cancerType==='Other'&&e.cancerTypeOther) main=e.cancerTypeOther;
+  const subs=[e.consultant,...mod.subFields.map(f=>e[f])].filter(Boolean).join(' · ');
+  let linkedLabel='';
+  if((mod.key==='billing'||mod.key==='overtime')&&e.linkedOp){
+    const op=DB.operations.find(o=>o.id===e.linkedOp);
+    if(op) linkedLabel=` · linked: ${op.procedure}`;
+  }
+  let histoBadge='';
+  if(mod.key==='operations'){
+    const s=histoStatus(e);
+    if(s.state==='overdue') histoBadge=`<div><span class="badge badge-danger">⏰ Histopath overdue by ${s.days}d</span></div>`;
+    else if(s.state==='upcoming') histoBadge=`<div><span class="badge badge-flag">Histopath check due in ${s.days}d</span></div>`;
+  }
+  let claimBadge='';
+  const cbField=mod.fields.find(f=>f.type==='checkbox');
+  if(cbField&&mod.key!=='operations'&&mod.key!=='billing'&&mod.key!=='cancer'){
+    claimBadge=e[cbField.name]
+      ?`<div><span class="badge badge-done">✓ ${esc(cbField.label)}</span></div>`
+      :`<div><span class="badge badge-flag">⚠ ${esc(cbField.label)} pending</span></div>`;
+  }
+  let mdtBadge='';
+  if(mod.key==='cancer') mdtBadge=`<div><span class="badge badge-clickable ${e.mdtDiscussed?'badge-green':'badge-yellow'}" onclick="toggleMdt('${e.id}')">${e.mdtDiscussed?'✓ MDT':'MDT'}</span></div>`;
+  let imagingBadge='';
+  if(mod.key==='cancer'){
+    imagingBadge=`<div><span class="badge badge-clickable ${e.awaitingImaging?'badge-imaging':'badge-imaging-off'}" onclick="toggleImaging('${e.id}')">${e.awaitingImaging?'📷 Awaiting imaging':'📷 Imaging'}</span></div>`;
+    if(e.awaitingImaging && !cardClass) cardClass=' card-yellow';
+  }
+  let pathwayBadge='';
+  if(mod.key==='cancer'&&e.pathwayStatus){
+    const pc={'Work-Up':'badge-red','Neoadjuvant':'badge-yellow','Surgery Complete':'badge-green','Not for Resection':'badge-grey'};
+    pathwayBadge=`<div><span class="badge ${pc[e.pathwayStatus]||'badge-flag'}">${esc(e.pathwayStatus)}</span></div>`;
+  }
+  let billingBadges=''; let cardClass='';
+  if(mod.key==='billing'){
+    if(e.paid){ billingBadges=`<div><span class="badge badge-done">✓ Submitted</span> <span class="badge badge-done">✓ Paid</span></div>`; }
+    else if(e.submitted){ billingBadges=`<div><span class="badge badge-done">✓ Submitted</span> <span class="badge badge-flag">Paid pending</span></div>`; cardClass=' card-yellow'; }
+    else { billingBadges=`<div><span class="badge badge-danger">Submitted pending</span> <span class="badge badge-danger">Paid pending</span></div>`; cardClass=' card-red'; }
+    if(e.fundsReceipated&&parseFloat(e.fundsReceipated)>0){
+      billingBadges+=`<div><span class="badge badge-green">💰 $${parseFloat(e.fundsReceipated).toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2})} receipted</span></div>`;
+    }
+  }
+  const photoCount=e.media?e.media.length:0;
+  const hasPhotoFlag=e.hasMedia||photoCount>0;
+  const mediaBadge=mod.key==='operations'&&hasPhotoFlag
+    ?`<div><span class="badge badge-flag badge-clickable" onclick="openPhotoViewer('${mod.key}','${e.id}')">📷 ${photoCount>0?photoCount+' photo'+(photoCount>1?'s':''):'Photos'} — view</span></div>`:'' ;
+  const videoBadge=mod.key==='operations'&&e.videoRecorded?`<div><span class="badge badge-done">🎥 Video stored offline</span></div>`:'';
+  const fileCount=e.files?e.files.length:0;
+  const filesBadge=mod.key==='operations'&&fileCount>0?`<div><span class="badge badge-flag">📄 ${fileCount} file${fileCount>1?'s':''}</span></div>`:'';
+  const afterHoursBadge=mod.key==='operations'&&e.afterHours?`<div><span class="badge badge-flag">🌙 After hours</span></div>`:'';
+  return `
+    <div class="entry-card${cardClass}">
+      <div class="entry-top">
+        <div class="entry-id"><span class="hid">${esc(e.hospitalId||'—')}</span> · ${esc(e.age||'—')}y · ${esc(e.initials||'—')}</div>
+        <div class="entry-date">${esc(e.date||'')}</div>
+      </div>
+      <div class="entry-main">${esc(main)}</div>
+      ${subs||linkedLabel?`<div class="entry-sub">${esc(subs)}${linkedLabel}</div>`:''}
+      ${histoBadge}${claimBadge}${mdtBadge}${imagingBadge}${pathwayBadge}${billingBadges}${mediaBadge}${videoBadge}${filesBadge}${afterHoursBadge}
+      <div class="entry-actions">
+        <button onclick="openSheet('${mod.key}','${e.id}')">Edit</button>
+        ${['cancer','inpatient','external'].includes(mod.key)?`<button onclick="toggleArchive('${mod.key}','${e.id}')">${e.archived?'Unarchive':'Archive'}</button>`:''}
+        <button class="del" onclick="deleteEntry('${mod.key}','${e.id}')">Delete</button>
+      </div>
+    </div>`;
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ============================================================
+   ENTRY FORM
+   ============================================================ */
+function openSheet(moduleKey,editId){
+  const entry=editId?DB[moduleKey].find(e=>e.id===editId):null;
+  sheetState={
+    moduleKey, editId:editId||null, ocrText:null, ocrApplied:false,
+    media:entry?[...entry.media||[]]:[],
+    files:entry?[...entry.files||[]]:[],
+    mediaLoading:!!(entry&&entry.hasMedia&&!(entry.media&&entry.media.length))
+  };
+  render();
+  // Lazy-load media in background if not yet in memory
+  if(sheetState.mediaLoading&&entry){
+    loadMediaFromDrive(entry.id).then(data=>{
+      if(data){
+        entry.media=data.media||[]; entry.files=data.files||[];
+        sheetState.media=[...entry.media]; sheetState.files=[...entry.files];
+        sheetState.mediaLoading=false;
+        renderMediaGrid(); renderFilesList();
+      }
+    }).catch(()=>{sheetState.mediaLoading=false;});
+  }
+}
+function closeSheet(){ sheetState=null; render(); }
+
+function renderSheet(){
+  const mod=moduleOf(sheetState.moduleKey);
+  const existing=sheetState.editId?DB[mod.key].find(e=>e.id===sheetState.editId):null;
+  const allFields=[...COMMON_FIELDS,...mod.fields];
+  const overlay=document.createElement('div');
+  overlay.className='sheet-overlay';
+  overlay.onclick=(ev)=>{ if(ev.target===overlay) closeSheet(); };
+  overlay.innerHTML=`
+    <div class="sheet">
+      <h3>${existing?'Edit':'New'} — ${mod.label}</h3>
+      <div class="scan-row">
+        <button type="button" class="scan-btn" id="scanBtn">📷 Scan a note (experimental)</button>
+        <span class="scan-status" id="scanStatus"></span>
+        <input type="file" id="scanInput" accept="image/*" capture="environment">
+      </div>
+      <div id="ocrSlot"></div>
+      <form id="entryForm">
+        ${allFields.map(f=>renderFieldInput(f,existing,mod)).join('')}
+      </form>
+      ${mod.key==='operations'?`
+        <div class="field">
+          <label>Photos (optional)</label>
+          <div class="media-grid" id="mediaGrid">${sheetState.mediaLoading?'<span style="font-size:12px;color:var(--ink-soft)">Loading photos…</span>':''}</div>
+          <button type="button" class="scan-btn" id="addMediaBtn">📎 Add photo</button>
+          <input type="file" id="mediaInput" accept="image/*" multiple>
+          <label class="checkbox-label" style="margin-top:10px;">
+            <input type="checkbox" id="videoRecordedInput" ${existing&&existing.videoRecorded?'checked':''}>
+            Video recorded (stored offline)
+          </label>
+        </div>
+        <div class="field">
+          <label>Additional files (optional) — e.g. operation note</label>
+          <div class="files-list" id="filesList"></div>
+          <button type="button" class="scan-btn" id="addFilesBtn">📄 Add file</button>
+          <input type="file" id="filesInput" accept=".pdf,.doc,.docx,.txt,.rtf,image/*" multiple>
+        </div>`:''}
+      <div class="sheet-actions">
+        <button type="button" class="btn-secondary" onclick="closeSheet()">Cancel</button>
+        <button type="button" class="btn-primary" onclick="saveEntry('${mod.key}','${existing?existing.id:''}')">Save entry</button>
+      </div>
+    </div>`;
+  app.appendChild(overlay);
+  document.getElementById('scanBtn').onclick=()=>document.getElementById('scanInput').click();
+  document.getElementById('scanInput').onchange=(ev)=>handleScan(ev,mod.key);
+  if(sheetState.ocrText) renderOcrBox();
+  if(mod.key==='operations'){
+    document.getElementById('addMediaBtn').onclick=()=>document.getElementById('mediaInput').click();
+    document.getElementById('mediaInput').onchange=handleMediaAdd;
+    if(!sheetState.mediaLoading) renderMediaGrid();
+    document.getElementById('addFilesBtn').onclick=()=>document.getElementById('filesInput').click();
+    document.getElementById('filesInput').onchange=handleFileAdd;
+    if(!sheetState.mediaLoading) renderFilesList();
+  }
+}
+
+function renderFieldInput(f,existing,mod){
+  const val=existing?(existing[f.name]??''):(f.name==='date'?today():'');
+  let wrapAttrs='';
+  if(f.showIf){
+    const tv=existing?(existing[f.showIf.field]??''):'';
+    const visible=tv===f.showIf.equals;
+    wrapAttrs=` data-show-if-field="${f.showIf.field}" data-show-if-equals="${esc(f.showIf.equals)}" style="${visible?'':'display:none;'}"`;
+  }
+  if(f.type==='select') return `<div class="field"${wrapAttrs}><label>${f.label}${f.required?' *':''}</label>
+    <select name="${f.name}" ${f.required?'required':''} ${f.onchangeToggle?'onchange="handleConditionalToggle(this)"':''}>
+      <option value="">—</option>
+      ${f.options.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
+    </select></div>`;
+  if(f.type==='linkedOp'){
+    const ops=DB.operations.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    return `<div class="field"><label>${f.label}</label>
+      <select name="${f.name}" onchange="populateFromLinkedOp(this.value)">
+        <option value="">— none —</option>
+        ${ops.map(o=>`<option value="${o.id}" ${val===o.id?'selected':''}>${esc(o.date)} — ${esc(o.procedure)} (${esc(o.hospitalId)})</option>`).join('')}
+      </select></div>`;
+  }
+  if(f.type==='textarea') return `<div class="field"${wrapAttrs}><label>${f.label}${f.required?' *':''}</label>
+    <textarea name="${f.name}" ${f.required?'required':''}>${esc(val)}</textarea></div>`;
+  if(f.type==='checkbox'){
+    const checked=existing?!!existing[f.name]:false;
+    return `<div class="field checkbox-field"><label class="checkbox-label">
+      <input type="checkbox" name="${f.name}" ${checked?'checked':''}> ${f.label}</label></div>`;
+  }
+  return `<div class="field"${wrapAttrs}><label>${f.label}${f.required?' *':''}</label>
+    <input type="${f.type}" name="${f.name}" value="${esc(val)}" ${f.required?'required':''}></div>`;
+}
+
+function populateFromLinkedOp(opId){
+  if(!opId) return;
+  const op=DB.operations.find(o=>o.id===opId);
+  if(!op) return;
+  const form=document.getElementById('entryForm');
+  if(!form) return;
+  ['hospitalId','age','initials','date','consultant'].forEach(f=>{
+    const el=form.elements[f];
+    if(el&&!el.value&&op[f]) el.value=op[f];
+  });
+}
+
+function handleConditionalToggle(selectEl){
+  const fn=selectEl.name; const val=selectEl.value;
+  const form=selectEl.closest('form');
+  form.querySelectorAll(`[data-show-if-field="${fn}"]`).forEach(div=>{
+    const matches=div.getAttribute('data-show-if-equals')===val;
+    div.style.display=matches?'':'none';
+    if(!matches){const inp=div.querySelector('input,textarea,select');if(inp)inp.value='';}
+  });
+}
+
+function saveEntry(moduleKey,editId){
+  const mod=moduleOf(moduleKey);
+  const form=document.getElementById('entryForm');
+  if(!form.checkValidity()){form.reportValidity();return;}
+  const data={};
+  [...COMMON_FIELDS,...mod.fields].forEach(f=>{
+    data[f.name]=f.type==='checkbox'?form.elements[f.name].checked:form.elements[f.name].value;
+  });
+  if(mod.key==='operations'){
+    data.videoRecorded=document.getElementById('videoRecordedInput').checked;
+    data.media=sheetState.media;
+    data.files=sheetState.files;
+    data.hasMedia=(sheetState.media.length>0||sheetState.files.length>0);
+  }
+  const isEdit=!!editId;
+  let entryId;
+  if(editId){
+    entryId=editId;
+    const idx=DB[mod.key].findIndex(e=>e.id===editId);
+    DB[mod.key][idx]={...DB[mod.key][idx],...data};
+  } else {
+    entryId=uid();
+    DB[mod.key].push({id:entryId,...data});
+  }
+  sheetState=null; unsaved=true; render();
+  if(accessToken){
+    if(mod.key==='operations'&&data.hasMedia){
+      saveMediaToDrive(entryId,data.media,data.files)
+        .then(()=>syncEntry(mod.key,entryId,isEdit))
+        .catch(err=>{console.error(err);syncStatus='error';render();});
+    } else {
+      syncEntry(mod.key,entryId,isEdit);
+    }
+  }
+}
+
+function deleteEntry(moduleKey,id){
+  if(!confirm('Delete this entry? This cannot be undone.')) return;
+  DB[moduleKey]=DB[moduleKey].filter(e=>e.id!==id);
+  unsaved=true; render();
+  if(accessToken){
+    syncStatus='syncing'; render();
+    markDeleted(moduleKey,id)
+      .then(()=>{syncStatus='synced';lastSynced=new Date();unsaved=false;render();})
+      .catch(err=>{console.error(err);syncStatus='error';render();});
+  }
+}
+
+function toggleMdt(id){
+  const entry=DB.cancer.find(e=>e.id===id);
+  if(!entry) return;
+  entry.mdtDiscussed=!entry.mdtDiscussed;
+  unsaved=true; render();
+  if(accessToken) syncEntry('cancer',id,true);
+}
+
+function toggleImaging(id){
+  const entry=DB.cancer.find(e=>e.id===id);
+  if(!entry) return;
+  entry.awaitingImaging=!entry.awaitingImaging;
+  unsaved=true; render();
+  if(accessToken) syncEntry('cancer',id,true);
+}
+
+/* ============================================================
+   MEDIA / FILES
+   ============================================================ */
+function handleMediaAdd(ev){
+  const files=Array.from(ev.target.files||[]); ev.target.value='';
+  files.forEach(file=>{
+    if(file.size>25*1024*1024&&!confirm(`"${file.name}" is ${(file.size/1024/1024).toFixed(1)}MB — add anyway?`)) return;
+    const reader=new FileReader();
+    reader.onload=e=>{ sheetState.media.push({id:uid(),name:file.name,kind:'image',mime:file.type,size:file.size,dataUrl:e.target.result}); renderMediaGrid(); };
+    reader.readAsDataURL(file);
+  });
+}
+function removeMedia(id){ sheetState.media=sheetState.media.filter(m=>m.id!==id); renderMediaGrid(); }
+function renderMediaGrid(){
+  const grid=document.getElementById('mediaGrid'); if(!grid) return;
+  grid.innerHTML=sheetState.media.map(m=>`
+    <div class="media-thumb"><img src="${m.dataUrl}">
+      <button type="button" class="media-remove" onclick="removeMedia('${m.id}')">✕</button>
+    </div>`).join('');
+}
+
+function openPhotoViewer(moduleKey,entryId){
+  const entry=DB[moduleKey].find(e=>e.id===entryId);
+  if(!entry) return;
+  if(!entry.media||entry.media.length===0){
+    if(entry.hasMedia){
+      // Try loading from Drive
+      loadMediaFromDrive(entryId).then(data=>{
+        if(data){entry.media=data.media||[];entry.files=data.files||[];}
+        showPhotoViewer(entry);
+      }).catch(()=>showPhotoViewer(entry));
+    } return;
+  }
+  showPhotoViewer(entry);
+}
+function showPhotoViewer(entry){
+  if(!entry.media||!entry.media.length){alert('No photos loaded for this entry yet.');return;}
+  const ov=document.createElement('div');
+  ov.className='sheet-overlay viewer-overlay'; ov.id='photoViewerOverlay';
+  ov.onclick=(ev)=>{if(ev.target===ov)closePhotoViewer();};
+  ov.innerHTML=`<div class="viewer-sheet">
+    <div class="viewer-head">
+      <div>${esc(entry.hospitalId||'—')} · ${esc(entry.initials||'—')} · ${esc(entry.procedure||'')}</div>
+      <button type="button" class="icon-btn" onclick="closePhotoViewer()">Close ✕</button>
+    </div>
+    <div class="viewer-grid">
+      ${entry.media.map(m=>`<div class="viewer-item"><img src="${m.dataUrl}"></div>`).join('')}
+    </div></div>`;
+  document.body.appendChild(ov);
+}
+function closePhotoViewer(){ const el=document.getElementById('photoViewerOverlay'); if(el)el.remove(); }
+
+function handleFileAdd(ev){
+  const files=Array.from(ev.target.files||[]); ev.target.value='';
+  files.forEach(file=>{
+    if(file.size>25*1024*1024&&!confirm(`"${file.name}" is ${(file.size/1024/1024).toFixed(1)}MB — add anyway?`)) return;
+    const reader=new FileReader();
+    reader.onload=e=>{ sheetState.files.push({id:uid(),name:file.name,mime:file.type,size:file.size,dataUrl:e.target.result}); renderFilesList(); };
+    reader.readAsDataURL(file);
+  });
+}
+function removeFile(id){ sheetState.files=sheetState.files.filter(f=>f.id!==id); renderFilesList(); }
+function renderFilesList(){
+  const list=document.getElementById('filesList'); if(!list) return;
+  list.innerHTML=sheetState.files.map(f=>`
+    <div class="file-row">
+      <a href="${f.dataUrl}" target="_blank" rel="noopener">📄 ${esc(f.name)}</a>
+      <span class="file-size">${(f.size/1024).toFixed(0)}KB</span>
+      <button type="button" class="media-remove file-remove" onclick="removeFile('${f.id}')">✕</button>
+    </div>`).join('');
+}
+
+/* ============================================================
+   OCR
+   ============================================================ */
+function handleScan(ev,moduleKey){
+  const file=ev.target.files[0]; if(!file) return;
+  const statusEl=document.getElementById('scanStatus');
+  statusEl.textContent='Reading image…';
+  if(typeof Tesseract==='undefined'){statusEl.textContent='Scan engine failed to load.';return;}
+  Tesseract.recognize(file,'eng',{
+    workerPath:'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/worker.min.js',
+    corePath:'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js-core/4.0.2/tesseract-core.wasm.js'
+  }).then(({data:{text}})=>{
+    statusEl.textContent='Scan complete — review below.';
+    sheetState.ocrText=text; renderOcrBox();
+  }).catch(err=>{statusEl.textContent='Scan failed.';console.error(err);});
+}
+function renderOcrBox(){
+  const slot=document.getElementById('ocrSlot'); if(!slot) return;
+  const guess=extractFields(sheetState.ocrText);
+  slot.innerHTML=`<div class="ocr-box">
+    <span class="lbl">Scanned text (unverified — check before saving)</span>
+    <textarea readonly>${esc(sheetState.ocrText)}</textarea>
+    <button type="button" class="ocr-apply" id="applyOcrBtn">Fill Hospital ID / Age / Initials</button>
+  </div>`;
+  document.getElementById('applyOcrBtn').onclick=()=>{
+    const form=document.getElementById('entryForm');
+    const g=guess;
+    if(g.hospitalId) form.elements['hospitalId'].value=g.hospitalId;
+    if(g.age) form.elements['age'].value=g.age;
+    if(g.initials) form.elements['initials'].value=g.initials;
+  };
+}
+function extractFields(text){
+  const out={};
+  const id=text.match(/\b\d{6,10}\b/); if(id) out.hospitalId=id[0];
+  const age=text.match(/age[:\s]+(\d{1,3})/i)||text.match(/\b(\d{1,3})\s*(?:y\.?o\.?|yrs?|years?\s*old)\b/i); if(age) out.age=age[1];
+  const ini=text.match(/\b([A-Z]{2,3})\b/); if(ini) out.initials=ini[1];
+  return out;
+}
+
+/* ============================================================
+   BACKUP / RESTORE / EXCEL
+   ============================================================ */
+function exportBackup(){
+  // Create backup-safe copy (media loaded in memory will be included)
+  const backup={};
+  MODULES.forEach(m=>{ backup[m.key]=DB[m.key]; });
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`hpb-logbook-backup-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function triggerRestore(){ document.getElementById('restoreInput').click(); }
+function handleRestore(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  if(!confirm('This will replace all current data with the backup and push to Sheets. Continue?')) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      MODULES.forEach(m=>{ DB[m.key]=Array.isArray(parsed[m.key])?parsed[m.key]:[]; });
+      migrateData();
+      render();
+      if(accessToken) pushAllToSheets();
+      alert('Backup restored and syncing to Sheets.');
+    }catch(err){ alert('Could not read backup file.'); }
+  };
+  reader.readAsText(file);
+}
+
+function exportExcel(){
+  if(typeof XLSX==='undefined'){alert('Excel engine failed to load.');return;}
+  const wb=XLSX.utils.book_new();
+  MODULES.forEach(m=>{
+    const rows=DB[m.key].map(e=>{
+      const row={};
+      [...COMMON_FIELDS,...m.fields].forEach(f=>{
+        if(f.type==='linkedOp'){
+          const op=DB.operations.find(o=>o.id===e[f.name]);
+          row['Linked operation']=op?`${op.date} ${op.procedure} (${op.hospitalId})`:'';
+        } else if(f.type==='checkbox'){
+          row[f.label]=e[f.name]?'Yes':'No';
+        } else {
+          row[f.label]=e[f.name]||'';
+        }
+      });
+      if(m.key==='operations'){
+        row['Photos']=e.media&&e.media.length?`${e.media.length} — view in app`:'';
+        row['Video recorded']=e.videoRecorded?'Yes':'No';
+        row['Additional files']=e.files&&e.files.length?`${e.files.length} — view in app`:'';
+      }
+      return row;
+    });
+    const ws=rows.length?XLSX.utils.json_to_sheet(rows):XLSX.utils.aoa_to_sheet([['No entries yet']]);
+    XLSX.utils.book_append_sheet(wb,ws,m.label.slice(0,31));
+  });
+  XLSX.writeFile(wb,`HPB-Logbook-Report-${today()}.xlsx`);
+}
+
+render();
+</script>
+</body>
+</html>
